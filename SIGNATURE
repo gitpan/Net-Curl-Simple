@@ -1,0 +1,42 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.55.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 b5cb79b0c4c1e3fbbabfa2ce90cf75aee373a884 MANIFEST
+SHA1 5cde1f8389665c4375294c2a6dd938fcbdea73bc META.yml
+SHA1 0f173916550dfe30607765b2f226083685e29a72 Makefile.PL
+SHA1 574471d068e5ecad5962554b61a09fb8537e7708 README
+SHA1 0d3439e17d10718e8aefe934b76f138f536dd233 lib/Net/Curl/Simple.pm
+SHA1 eebf36b03133f66d2317867a38ceef8867765945 lib/Net/Curl/Simple/Async.pm
+SHA1 fbb53c25c9f061933abf843834687189d88449ca lib/Net/Curl/Simple/Async/AnyEvent.pm
+SHA1 4b7c7615538798cfed2fc99eb55e0049969bf1fd lib/Net/Curl/Simple/Async/Irssi.pm
+SHA1 a8dbd9fb179d90204149b71c6d3b3d7ce7149b31 lib/Net/Curl/Simple/Async/Perl.pm
+SHA1 7a410c95a1201a0ef877c8d7c3a0448159a3d5c5 lib/Net/Curl/Simple/Form.pm
+SHA1 ff6c9b2d4a49eea8b74a2af2b5d8fae223401a01 lib/Net/Curl/Simple/UserAgent.pm
+SHA1 564031d91f3a4ca8a7849b363d19559d91ed975f t/01-use.t
+SHA1 576a9640d35a0d888c9aefadb8e62683d364e435 t/02-version.t
+SHA1 a54e059d2d551f81645094c6624a3c5c9c82864d t/10-simple.t
+SHA1 45ca0214947b10634a9dfae4d467c8e6ce7ba1a8 t/20-async-perl.t
+SHA1 f41eb3817d719f175d23c76d98d31a213483b79e t/21-async-anyevent.t
+SHA1 3314c65d7643504372d2483ce47ceae44b2b9d09 t/30-useragent-simple.t
+SHA1 cd5f668586f77354ff78e34bce236e04b02dfe9b t/90-pod.t
+SHA1 706b6f7091b7aac0a0364378ac3b379d7a1317df t/91-pod-coverage.t
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk24Rv0ACgkQdltEc8aiybl/lQCfSUzzZk1DAsS32K7OqXdNLBE5
+n7cAnA1an9qoPWbbZYE/jRdU4HsCkVNV
+=Pjo3
+-----END PGP SIGNATURE-----
