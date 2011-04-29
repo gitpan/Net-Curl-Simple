@@ -9,7 +9,7 @@ use URI;
 use URI::Escape qw(uri_escape);
 use base qw(Net::Curl::Easy);
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 my @common_options = (
 	timeout => 300,
@@ -367,6 +367,10 @@ Net::Curl::Simple - simplifies Net::Curl::Easy interface
 
  sub finished2 { }
 
+=head1 WARNING
+
+B<This module is under heavy development.> Its interface may change yet.
+
 =head1 DESCRIPTION
 
 C<Net::Curl::Simple> is a thin layer over L<Net::Curl::Easy>. It simplifies
@@ -452,7 +456,7 @@ object (L<Net::Curl::Simple::Form> is OK as well).
 
  $curl->post( $uri,
      { username => "foo", password => "bar" },
-	 \&finished
+     \&finished
  );
 
 =item put( URI, PUTDATA, [TEMPORARY_OPTIONS], CALLBACK )
@@ -467,11 +471,11 @@ case.
  $curl2->put( $uri, \"some data", \&finished );
  $curl3->put( $uri, sub {
          my ( $curl, $maxsize, $uservar ) = @_;
-		 read STDIN, my ( $r ), $maxsize;
-		 return \$r;
+         read STDIN, my ( $r ), $maxsize;
+         return \$r;
      },
      infilesize => EXPECTED_SIZE,
-	 \&finished
+     \&finished
  );
 
 =item code

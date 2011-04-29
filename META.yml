@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Net-Curl-Simple
-version:            0.04
+version:            0.05
 abstract:           simplifies Net::Curl::Easy interface
 author:
     - Przemysław Iskra <sparky at pld-linux.org>
@@ -11,7 +11,11 @@ configure_requires:
 build_requires:
     ExtUtils::MakeMaker:  0
 requires:
+    AnyEvent:    5.00
+    Coro:        0
+    EV:          4.00
     Net::Curl:   0.17
+    POE:         0
     Test::More:  0
     URI:         0
 resources:

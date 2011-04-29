@@ -14,36 +14,36 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 7f551b5447b6c365a6194f49a5c88607a0c851cf MANIFEST
-SHA1 ba784e24fedb256dda8c0c57b0f017245170056c META.yml
-SHA1 e5bdf967e49d34259c4230fac2cffac18e5ce421 Makefile.PL
+SHA1 12a7765cd1b503935446eb3297a3c91b4581116c MANIFEST
+SHA1 bc433f47efc58b32d116f34f06c0b8bfc99aa667 META.yml
+SHA1 b9380080d7003271c0c503e091f07483e4310823 Makefile.PL
 SHA1 b70f2494c58331552f57ed916ede6f4a6d924a05 README
-SHA1 ad420674d3680a4777efb504bcba3f6005154dd7 lib/Net/Curl/Simple.pm
-SHA1 e9dcc390f942d7bf4262397f1cc1313672b04977 lib/Net/Curl/Simple/Async.pm
+SHA1 baadf0869f17f259064f866b95c26adb70a1ec1e lib/Net/Curl/Simple.pm
+SHA1 c31a0e476ea1fa2ab534cbf59e4024e5ba6658d1 lib/Net/Curl/Simple/Async.pm
 SHA1 fbb53c25c9f061933abf843834687189d88449ca lib/Net/Curl/Simple/Async/AnyEvent.pm
-SHA1 2b34c06f5efb0cdad79355e8695397f6c0f5e055 lib/Net/Curl/Simple/Async/EV.pm
+SHA1 a368ea81a0e3cde31c8c6d05aba0ad9d3cf97387 lib/Net/Curl/Simple/Async/EV.pm
 SHA1 8cdac84457e60f33a58cfccec34ed831673226c3 lib/Net/Curl/Simple/Async/Irssi.pm
 SHA1 3fc9f31950b8350f46123f087c6cec438c4fef5d lib/Net/Curl/Simple/Async/POE.pm
-SHA1 a8dbd9fb179d90204149b71c6d3b3d7ce7149b31 lib/Net/Curl/Simple/Async/Perl.pm
-SHA1 d1d1d6fc8d9c19bea77ba0db1354029aad72661e lib/Net/Curl/Simple/Coro.pm
-SHA1 4c32469b63b91da21022d058f22a24f05b76efe5 lib/Net/Curl/Simple/Form.pm
-SHA1 a8ac44fe76a9dd1ae4ce7a7275245cab4f51e614 lib/Net/Curl/Simple/UserAgent.pm
+SHA1 f4f538540fc1d0c770d6b2aa174cbd1b4544c118 lib/Net/Curl/Simple/Async/Select.pm
+SHA1 b6c974ef0dc971de479b7aa4c8525cac216f5809 lib/Net/Curl/Simple/Coro.pm
+SHA1 9c97e6b7f73ffb26a089ccc254be601954edb7c5 lib/Net/Curl/Simple/Form.pm
+SHA1 17cbf25494d186810d40972455aa6e840e3484d6 lib/Net/Curl/Simple/UserAgent.pm
 SHA1 564031d91f3a4ca8a7849b363d19559d91ed975f t/01-use.t
 SHA1 576a9640d35a0d888c9aefadb8e62683d364e435 t/02-version.t
 SHA1 410115131476eacfb37b7716b7f365184cf89fec t/10-simple.t
-SHA1 7cdea19125c1d7101ab64283ee7ce8b826d29da1 t/20-async-perl.t
+SHA1 296851717fe0be92d632ac378b401b324a76d7a2 t/20-async-perl.t
 SHA1 cf59ff21bd537d0df948af1d75f896979e2205fe t/21-async-anyevent.t
 SHA1 66583f2c9b965d0fd1bbe0e5cc9383c0eecdb152 t/22-async-poe.t
 SHA1 552833db01a35782b6140c6299cae4f2a80594eb t/23-async-ev.t
 SHA1 8d7d9a3627740a3303819cb307c08b550fcf91eb t/24-async-any.t
 SHA1 9f6b72a51dbcb0860304b785addc2a8fdc2d8807 t/30-useragent-simple.t
 SHA1 ebb21aca30acb76c8117b37df74993482a05bf5a t/40-coro-noasync.t
-SHA1 cd5f668586f77354ff78e34bce236e04b02dfe9b t/90-pod.t
+SHA1 d34a47051f6de7202fa81b057bf8b21e1ef46d5e t/90-pod.t
 SHA1 706b6f7091b7aac0a0364378ac3b379d7a1317df t/91-pod-coverage.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAk26EQAACgkQdltEc8aiybm07wCggURxWbEJXCFkE+RXJwm1FYs+
-eZ8AoJO3c8CL+Y0FuKcfmwtpZbV3czbs
-=U7gF
+iEYEARECAAYFAk27EUIACgkQdltEc8aiybkoiACgo4EXTXkFuLxVTyjUX8oLalfz
++N4AnjiA5GojpLVWWd3+iz36aN7IWdJR
+=BHwU
 -----END PGP SIGNATURE-----
