@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Net-Curl-Simple
-version:            0.03
+version:            0.04
 abstract:           simplifies Net::Curl::Easy interface
 author:
     - Przemysław Iskra <sparky at pld-linux.org>
@@ -13,6 +13,7 @@ build_requires:
 requires:
     Net::Curl:   0.17
     Test::More:  0
+    URI:         0
 resources:
     repository:  https://github.com/sparky/perl-Net-Curl-Simple
 no_index:

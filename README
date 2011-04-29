@@ -12,8 +12,5 @@ UserAgent:
 - ?
 
 Async:
-- fix Irssi
-- add POE
 - add IO_Async
 - add Glib
-- maybe add EV

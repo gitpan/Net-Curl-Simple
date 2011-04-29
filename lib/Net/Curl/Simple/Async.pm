@@ -4,36 +4,62 @@ use strict;
 use warnings;
 use Net::Curl;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
-unless ( Net::Curl::version_info()->{features}
-		& Net::Curl::CURL_VERSION_ASYNCHDNS ) {
-	warn "Please rebuild libcurl with AsynchDNS to avoid"
-		. " blocking DNS requests\n";
-}
+use constant
+	can_asynchdns => ( ( Net::Curl::version_info()->{features}
+		& Net::Curl::CURL_VERSION_ASYNCHDNS ) != 0 );
 
+sub warn_noasynchdns($) { warn @_ }
+
+
+# load specified backend (left) if appropriate module (right)
+# is loaded already
 my @backends = (
+	# backends we support directly
+	EV => 'EV',
 	Irssi => 'Irssi',
+	POE => 'POE::Kernel',
 	AnyEvent => 'AnyEvent',
-	# POE => 'POE::Kernel',
-	# IO_Async => 'IO::Async::Loop',
-	# EV => 'EV',
-	# Glib => 'Glib',
-	Perl => undef, # direct approach
+
+	# AnyEvent supports some implementations we don't
+	AnyEvent => 'AnyEvent::Impl::Perl',
+	AnyEvent => 'Cocoa::EventLoop',
+	AnyEvent => 'Event',
+	AnyEvent => 'Event::Lib',
+	AnyEvent => 'Glib',
+	AnyEvent => 'IO::Async::Loop',
+	AnyEvent => 'Qt',
+	AnyEvent => 'Tk',
+
+	# some POE::Loop::* implementations,
+	# AnyEvent is preffered as it gives us a more
+	# direct access to those backends
+	POE => 'Event',
+	POE => 'Event::Lib',
+	POE => 'Glib',
+	POE => 'Gtk', # not gtk2
+	POE => 'Prima',
+	POE => 'Tk',
+	POE => 'Wx',
+
+	# forced backends: try to load if nothing better detected
+	EV => undef, # most efficient implementation
+	AnyEvent => undef, # AnyEvent may have some nice alternative
+	Perl => undef, # will work everywhere and much faster than POE
 );
 
-my $make_multi;
-$make_multi = sub
-{
-	$make_multi = undef;
 
+sub _get_multi()
+{
 	my $multi;
+
 	no strict 'refs';
 	while ( my ( $impl, $pkg ) = splice @backends, 0, 2 ) {
 		if ( not defined $pkg or defined ${ $pkg . '::VERSION' } ) {
 			my $implpkg = join '::', __PACKAGE__, $impl;
 			eval "require $implpkg";
-			die $@ if $@;
+			next if $@;
 			eval {
 				$multi = $implpkg->new();
 			};
@@ -44,34 +70,36 @@ $make_multi = sub
 	die "Could not load " . __PACKAGE__ . " implementation\n"
 		unless $multi;
 
+	warn_noasynchdns "Please rebuild libcurl with AsynchDNS to avoid"
+		. " blocking DNS requests\n" unless can_asynchdns;
+
+	no warnings 'redefine';
+	*_get_multi = sub () { $multi };
+
 	return $multi;
 };
 
 sub import
 {
 	my $class = shift;
-	my $impl = shift;
-	return if not $impl or not $make_multi;
+	return if not @_;
 	# force some implementation
-	@backends = ( $impl, undef );
+	@backends = map +($_, undef), @_;
 }
 
-my $multi;
-sub _add
+sub _add($)
 {
 	my $easy = shift;
 
 	die "easy cannot _finish()\n"
 		unless $easy->can( '_finish' );
 
-	$multi = $make_multi->() unless $multi;
-	$multi->add_handle( $easy );
+	_get_multi->add_handle( $easy );
 }
 
 sub loop
 {
-	return unless $multi;
-	$multi->loop();
+	_get_multi->loop();
 }
 
 1;
@@ -110,11 +138,11 @@ asynchronous support is adding:
  use Net::Curl::Simple::Async;
 
 It will pick up best Async backend automatically. However, you may force
-some backend if you don't like the one detected:
+some backends if you don't like the one detected:
 
  use Irssi;
  # Irssi backend would be picked
- use Net::Curl::Simple::Async qw(AnyEvent);
+ use Net::Curl::Simple::Async qw(AnyEvent POE);
 
 You may need to call loop() function if your code does not provide any
 suitable looping mechanism.
@@ -127,6 +155,25 @@ suitable looping mechanism.
 
 Block until all requests are complete. Some backends may not support it.
 Most backends don't need it.
+
+=item can_asynchdns
+
+Will tell you whether libcurl has AsyncDNS capability.
+
+=item warn_noasynchdns
+
+Function used to warn about lack of AsynchDNS. You can overwrite it if you
+hate the warning.
+
+ {
+     no warnings;
+     # don't warn at all
+     *Net::Curl::Simple::Async::warn_noasynchdns = sub ($) { };
+ }
+
+Lack of AsynchDNS support in libcurl can severely reduce
+C<Net::Curl::Simple::Async> efficiency. You should not disable the warning,
+just replace it with a method more suitable in your application.
 
 =back
 
