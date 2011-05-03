@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use Test::More;
 BEGIN {
-	eval 'use Coro';
+	eval 'use Coro; use Coro::EV;';
 	plan skip_all => "Coro is required for this test" if $@;
 }
 plan tests => 20;
@@ -16,9 +16,9 @@ my $ca = async {
 	is( $pos, 1, 'started correctly' ); $pos = 2;
 
 	my $curl = Net::Curl::Simple->new;
-	$curl->get( "http://google.com/search?q=curl", sub { } );
+	$curl->get( "http://google.com/search?q=curl", undef );
 
-	is( $pos, 3, 'first returned after second start' );
+	is( $pos, 3, 'first returned after second start' ); $pos = 3;
 
 	ok( defined $curl->code, 'finish callback called' );
 	cmp_ok( $curl->code, '==', 0, 'downloaded successfully' );
@@ -34,9 +34,9 @@ my $cb = async {
 	is( $pos, 2, 'did not block' ); $pos = 3;
 
 	my $curl = Net::Curl::Simple->new;
-	$curl->get( "http://google.com/search?q=perl", sub { } );
+	$curl->get( "http://google.com/search?q=perl", undef );
 
-	is( $pos, 3, 'second returned' );
+	is( $pos, 3, 'second returned' ); $pos = 3;
 
 	ok( defined $curl->code, 'finish callback called' );
 	cmp_ok( $curl->code, '==', 0, 'downloaded successfully' );
@@ -51,3 +51,5 @@ my $cb = async {
 cede;
 $ca->join;
 $cb->join;
+
+diag( 'loaded implementation: ' . (join ", ", grep m#/Async/#, keys %INC ) );

@@ -1,8 +1,9 @@
-package Net::Curl::Simple::Async::EV;
+package Net::Curl::Simple::Async::CoroEV;
 
 use strict;
 use warnings;
-use EV 4.00;
+use Coro::EV;
+use Coro::Signal;
 use Net::Curl::Multi qw(/^CURL_POLL_/ /^CURL_CSELECT_/);
 use base qw(Net::Curl::Multi);
 
@@ -27,6 +28,7 @@ use constant {
 	CONDVAR => 0,
 	ACTIVE => 1,
 	TIMER => 2,
+	LAST_EASY => 3,
 };
 
 sub new
@@ -111,8 +113,11 @@ sub _rip_child
 			$multi->remove_handle( $easy );
 			$easy->_finish( $result );
 
-			$ecv->send( $easy ) if $ecv;
-			$mcv->send( $easy ) if $mcv;
+			$ecv->broadcast if $ecv;
+			if ( $mcv ) {
+				$multi->[ LAST_EASY ] = $easy;
+				$mcv->broadcast;
+			}
 		} else {
 			die "I don't know what to do with message $msg.\n";
 		}
@@ -139,34 +144,21 @@ sub get_one
 {
 	my ( $multi, $easy ) = @_;
 
-	my $a = undef;
-	my $cv = bless \$a, 'Net::Curl::Simple::Async::EV::CondVar';
+	my $cv = Coro::Signal->new;
 	if ( $easy ) {
 		$easy->{cv} = $cv;
+		_rip_child( $multi );
+		$cv->wait;
+		return $easy;
 	} else {
 		return undef unless $multi->handles;
 		$multi->[ CONDVAR ] = $cv;
+		_rip_child( $multi );
+		$cv->wait;
+		$easy = $multi->[ LAST_EASY ];
+		$multi->[ LAST_EASY ] = undef;
+		return $easy;
 	}
-
-	_rip_child( $multi );
-	return $cv->recv;
-}
-
-package Net::Curl::Simple::Async::EV::CondVar;
-
-sub send
-{
-	my $self = shift;
-	$$self = shift;
-	EV::break;
-}
-
-sub recv
-{
-	my $self = shift;
-
-	EV::run until $$self;
-	return $$self;
 }
 
 1;

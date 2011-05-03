@@ -4,34 +4,22 @@ use strict;
 use warnings;
 use Test::More;
 BEGIN {
-	eval 'use POE';
-	plan skip_all => "POE is required for this test" if $@;
+	eval 'use Coro';
+	plan skip_all => "Coro is required for this test" if $@;
 }
-plan tests => 18;
+plan tests => 20;
 use Net::Curl::Simple;
-use Net::Curl::Simple::Async qw(POE);
+use Net::Curl::Simple::Async qw(Select);
 
-my $got = 0;
-Net::Curl::Simple->new->get( "http://google.com/", sub {
-	my $curl = shift;
-	$got = 1;
+my $pos = 1;
 
-	ok( defined $curl->code, 'finish callback called' );
-	cmp_ok( $curl->code, '==', 0, 'downloaded successfully' );
-	ok( ! $curl->{in_use}, 'handle released' );
-	is( ref $curl->{headers}, 'ARRAY', 'got array of headers' );
-	is( ref $curl->{body}, '', 'got body scalar' );
-	cmp_ok( scalar $curl->headers, '>', 3, 'got at least 3 headers' );
-	cmp_ok( length $curl->content, '>', 1000, 'got some body' );
-	isnt( $curl->{referer}, '', 'referer updarted' );
+my $ca = async {
+	is( $pos, 1, 'started correctly' ); $pos = 2;
 
-	$curl->get( '/search?q=perl', \&finish2 );
-} );
+	my $curl = Net::Curl::Simple->new;
+	$curl->get( "http://google.com/search?q=curl", undef );
 
-sub finish2
-{
-	my $curl = shift;
-	$got = 2;
+	is( $pos, 3, 'first returned after second start' ); $pos = 3;
 
 	ok( defined $curl->code, 'finish callback called' );
 	cmp_ok( $curl->code, '==', 0, 'downloaded successfully' );
@@ -41,12 +29,28 @@ sub finish2
 	cmp_ok( scalar $curl->headers, '>', 3, 'got at least 3 headers' );
 	cmp_ok( length $curl->content, '>', 1000, 'got some body' );
 	isnt( $curl->{referer}, '', 'referer updarted' );
-}
+};
 
-is( $got, 0, 'request did not block' );
+my $cb = async {
+	is( $pos, 2, 'did not block' ); $pos = 3;
 
-1 while Net::Curl::Simple->join;
+	my $curl = Net::Curl::Simple->new;
+	$curl->get( "http://google.com/search?q=perl", undef );
 
-is( $got, 2, 'performed both requests' );
+	is( $pos, 3, 'second returned' ); $pos = 3;
+
+	ok( defined $curl->code, 'finish callback called' );
+	cmp_ok( $curl->code, '==', 0, 'downloaded successfully' );
+	ok( ! $curl->{in_use}, 'handle released' );
+	is( ref $curl->{headers}, 'ARRAY', 'got array of headers' );
+	is( ref $curl->{body}, '', 'got body scalar' );
+	cmp_ok( scalar $curl->headers, '>', 3, 'got at least 3 headers' );
+	cmp_ok( length $curl->content, '>', 1000, 'got some body' );
+	isnt( $curl->{referer}, '', 'referer updarted' );
+};
+
+cede;
+$ca->join;
+$cb->join;
 
 diag( 'loaded implementation: ' . (join ", ", grep m#/Async/#, keys %INC ) );

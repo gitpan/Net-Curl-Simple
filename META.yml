@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Net-Curl-Simple
-version:            0.05
+version:            0.10
 abstract:           simplifies Net::Curl::Easy interface
 author:
     - Przemysław Iskra <sparky at pld-linux.org>

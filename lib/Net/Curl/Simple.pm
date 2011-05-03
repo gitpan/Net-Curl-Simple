@@ -1,7 +1,7 @@
 package Net::Curl::Simple;
 
 use strict;
-use warnings;
+use warnings; no warnings 'redefine';
 use Net::Curl 0.17;
 use Net::Curl::Easy qw(/^CURLOPT_(PROXY|POSTFIELDS)/ /^CURLPROXY_/);
 use Scalar::Util qw(looks_like_number);
@@ -9,7 +9,21 @@ use URI;
 use URI::Escape qw(uri_escape);
 use base qw(Net::Curl::Easy);
 
-our $VERSION = '0.05';
+our $VERSION = '0.10';
+
+use constant
+	curl_features => Net::Curl::version_info()->{features};
+
+use constant {
+	can_ipv6 => ( curl_features & Net::Curl::CURL_VERSION_IPV6 ) != 0,
+	can_ssl => ( curl_features & Net::Curl::CURL_VERSION_SSL ) != 0,
+	can_libz => ( curl_features & Net::Curl::CURL_VERSION_LIBZ ) != 0,
+	can_asynchdns => ( curl_features & Net::Curl::CURL_VERSION_ASYNCHDNS ) != 0,
+	TRUE => !0,
+	FALSE => !1,
+};
+
+use Net::Curl::Simple::Async;
 
 my @common_options = (
 	timeout => 300,
@@ -19,16 +33,13 @@ my @common_options = (
 	ssl_verifypeer => 0,
 	noprogress => 1,
 	cookiefile => '',
-	useragent => __PACKAGE__ . " v$VERSION",
+	useragent => __PACKAGE__ . ' v' . $VERSION,
 	headerfunction => \&_cb_header,
 	httpheader => [
 		'Accept: */*',
 	],
+	( can_libz ? ( encoding => 'gzip,deflate' ) : () ),
 );
-
-if ( Net::Curl::version_info()->{features} & Net::Curl::CURL_VERSION_LIBZ ) {
-	push @common_options, encoding => 'gzip,deflate';
-}
 
 my %proxytype = (
 	http    => CURLPROXY_HTTP,
@@ -182,15 +193,14 @@ sub _finish
 	$easy->{in_use} = 0;
 	$easy->{code} = $result;
 
-	my $cb = $easy->{cb};
-	$cb->( $easy );
-
 	my $perm = $easy->{options};
 	foreach my $opt ( keys %{ $easy->{options_temp} } ) {
 		my $val = $perm->{$opt};
 		$easy->setopt( $opt => $val, 0 );
-
 	}
+
+	my $cb = $easy->{cb};
+	eval { $cb->( $easy ) } if $cb;
 }
 
 sub ua
@@ -198,6 +208,7 @@ sub ua
 	return (shift)->share();
 }
 
+sub _start_perform($);
 sub _perform
 {
 	my ( $easy, $uri, $cb ) = splice @_, 0, 3;
@@ -218,19 +229,27 @@ sub _perform
 	$easy->{headers} = [];
 	$easy->{in_use} = 1;
 
-	if ( my $add = UNIVERSAL::can( 'Net::Curl::Simple::Async', '_add' ) ) {
-		$add->( $easy );
-	} elsif ( UNIVERSAL::can( 'Coro', 'cede' ) ) {
-		require Net::Curl::Simple::Coro;
-		Net::Curl::Simple::Coro::_perform( $easy );
-	} else {
-		eval {
-			$easy->perform();
-		};
-		$easy->_finish( $@ || Net::Curl::Easy::CURLE_OK );
-	}
+	Net::Curl::Simple::Async::multi->add_handle( $easy );
+
+	# block unless we've got a callback
+	$easy->join unless $cb;
+
 	return $easy;
 }
+
+*join = sub ($)
+{
+	my $easy = shift;
+	if ( not ref $easy ) {
+		# no object, wait for first easy that finishes
+		$easy = Net::Curl::Simple::Async::multi->get_one();
+		return $easy;
+	} else {
+		return $easy unless $easy->{in_use};
+		Net::Curl::Simple::Async::multi->get_one( $easy );
+		return $easy;
+	}
+};
 
 # results
 sub code
@@ -346,6 +365,8 @@ sub put
 
 1;
 
+__END__
+
 =head1 NAME
 
 Net::Curl::Simple - simplifies Net::Curl::Easy interface
@@ -355,6 +376,9 @@ Net::Curl::Simple - simplifies Net::Curl::Easy interface
  use Net::Curl::Simple;
 
  Net::Curl::Simple->new->get( $uri, \&finished );
+
+ # wait until all requests are finished
+ 1 while Net::Curl::Simple->join;
 
  sub finished
  {
@@ -371,17 +395,18 @@ Net::Curl::Simple - simplifies Net::Curl::Easy interface
 
 B<This module is under heavy development.> Its interface may change yet.
 
+B<Documentation may not be up to date with latest interface changes.>
+
 =head1 DESCRIPTION
 
-C<Net::Curl::Simple> is a thin layer over L<Net::Curl::Easy>. It simplifies
-many common tasks, while providing access to full power of L<Net::Curl::Easy>
+C<Net::Curl::Simple> is a thin layer over L<Net::Curl>. It simplifies
+many common tasks, while providing access to full power of L<Net::Curl>
 when its needed.
 
 L<Net::Curl> excells in asynchronous operations, thanks to a great design of
 L<libcurl(3)>. To take advantage of that power C<Net::Curl::Simple> interface
 uses callbacks even in synchronous mode, this should allow to quickly switch
-to async when the time comes. Of course there is nothing to stop you to use
-L<Net::Curl::Simple::Async> from the beginning.
+to async when the time comes.
 
 =head1 CONSTRUCTOR
 
@@ -484,11 +509,17 @@ Return result code. Zero means we're ok.
 
 =item headers
 
-Return a list of all headers. Equivalent to C<@{ $curl->{headers} }>.
+Return a list of all headers. Equivalent to C<< @{ $curl->{headers} } >>.
 
 =item content
 
-Return transfer content. Equivalent to C<$curl->{body}>.
+Return transfer content. Equivalent to C<< $curl->{body} >>.
+
+=item join
+
+B<NOT IMPLEMENTED YET>
+
+Wait for this download "thread" to finish.
 
 =back
 

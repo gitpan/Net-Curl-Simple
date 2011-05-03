@@ -6,7 +6,7 @@ use Scalar::Util qw(looks_like_number);
 use Net::Curl::Form;
 use base qw(Net::Curl::Form);
 
-our $VERSION = '0.05';
+our $VERSION = '0.10';
 
 {
 	my %optcache;
@@ -54,6 +54,8 @@ sub file
 }
 
 1;
+
+__END__
 
 =head1 NAME
 
