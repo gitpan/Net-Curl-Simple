@@ -14,22 +14,23 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 b2dafd353c6b2275dbdd621cf2e0d5fb44d4ea23 MANIFEST
-SHA1 3def4f7b4e48c4646a644cdbb3e262c38db2f6e5 META.yml
+SHA1 840fd206cb97f3787ec44eea5c9d55f7007e1d80 MANIFEST
+SHA1 abb5b519a8a4b183ca54e620abacb2956887abd6 META.yml
 SHA1 df4da205900041602e843fe6c22f7bfb2f3ab440 Makefile.PL
 SHA1 0838dc3cc65ed7009cf70cf4e2fe606ee7bc15fa README
+SHA1 0812583aebc10909ea7855ac122a0ef32dae119c examples/download-accelerator.pl
 SHA1 a82be17b978859f3c961731501d15b658d494d96 examples/irssi-cpan-search.pl
-SHA1 b362100dc5fa40bbb218acf0e3f332d398328d19 lib/Net/Curl/Simple.pm
-SHA1 548a0e354f48b67c46765245cfac3cf34f231690 lib/Net/Curl/Simple/Async.pm
+SHA1 d5114654897188f59e121bdcc1658975323bd052 lib/Net/Curl/Simple.pm
+SHA1 0e33a087f24c815e974247218695bcc3941488b4 lib/Net/Curl/Simple/Async.pm
 SHA1 69047ec32018f93342e4a33b3f57ab3ce98533a1 lib/Net/Curl/Simple/Async/AnyEvent.pm
 SHA1 875a7a460262fee84ab469f04f6a89e4ea062e5e lib/Net/Curl/Simple/Async/CoroEV.pm
 SHA1 1d215c49dc5d7cc2aa056dec652cd1b48b1a73f9 lib/Net/Curl/Simple/Async/EV.pm
 SHA1 ce897ddc2a6f725e3cb4f47f5df468f7b50d556f lib/Net/Curl/Simple/Async/Irssi.pm
 SHA1 8198638b3dd2a8f1a48e38a1ffb8fbbf78792c0c lib/Net/Curl/Simple/Async/POE.pm
 SHA1 e3cebb5bd6cfc9b89e82a66f3a745de1dedeccfe lib/Net/Curl/Simple/Async/Select.pm
-SHA1 688c61ebdbe87560e00f63454afeb54ccc49bf3b lib/Net/Curl/Simple/Form.pm
-SHA1 2325df53eb6922abde36caa8741562588c773b06 lib/Net/Curl/Simple/UserAgent.pm
-SHA1 959eb000458e36180ae29ef5fc8a886b484174b9 lib/Net/Curl/Simple/examples.pod
+SHA1 ac4996b65e55c012f13aa7062b6c0bebb9ca76e0 lib/Net/Curl/Simple/Form.pm
+SHA1 fd044c5eaba906b0b36bd1544d76dbca5b5c8bd3 lib/Net/Curl/Simple/UserAgent.pm
+SHA1 20a31b70274d832c4d623dd268ed638e4a1b6f78 lib/Net/Curl/Simple/examples.pod
 SHA1 564031d91f3a4ca8a7849b363d19559d91ed975f t/01-use.t
 SHA1 576a9640d35a0d888c9aefadb8e62683d364e435 t/02-version.t
 SHA1 2da80ec38ada429387098d9ac325c18ec9996ffa t/10-simple.t
@@ -48,7 +49,7 @@ SHA1 706b6f7091b7aac0a0364378ac3b379d7a1317df t/91-pod-coverage.t
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.11 (GNU/Linux)
 
-iEYEARECAAYFAk3BqNoACgkQdltEc8aiyblNDgCgocAWU72jM8FVbPPGau6yItAf
-lSEAnjX4UufTwBwGDiHwleDKRmZ8XZQz
-=fFyp
+iEYEARECAAYFAk3B5ZcACgkQdltEc8aiybmMuwCfb04NeHwaKh57ahwbvcZFBO7N
+FwoAnipWNeyx4jLa+1RrchHPTy/X7Zfr
+=PYUM
 -----END PGP SIGNATURE-----

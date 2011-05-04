@@ -9,7 +9,7 @@ use URI;
 use URI::Escape qw(uri_escape);
 use base qw(Net::Curl::Easy);
 
-our $VERSION = '0.11';
+our $VERSION = '0.12';
 
 use constant
 	curl_features => Net::Curl::version_info()->{features};
@@ -26,15 +26,19 @@ use Net::Curl::Simple::Async;
 my @common_options = (
 	connecttimeout => 60,
 	followlocation => 1,
+	# just to avoid loops
 	maxredirs => 50,
+	# there are to many broken servers to care about it by default
 	ssl_verifypeer => 0,
+	# enable cookie session
 	cookiefile => '',
 	useragent => __PACKAGE__ . ' v' . $VERSION,
 	headerfunction => \&_cb_header,
 	httpheader => [
 		'Accept: */*',
 	],
-	( can_libz ? ( encoding => 'gzip,deflate' ) : () ),
+	# sets Accept-Encoding to all values supported by libcurl
+	encoding => '',
 );
 
 my %proxytype = (
@@ -262,7 +266,7 @@ sub content
 sub get
 {
 	my ( $easy, $uri ) = splice @_, 0, 2;
-	my $cb = pop;
+	my $cb = @_ & 1 ? pop : undef;
 
 	$easy->_perform( $uri, $cb,
 		@_,
@@ -274,7 +278,7 @@ sub get
 sub head
 {
 	my ( $easy, $uri ) = splice @_, 0, 2;
-	my $cb = pop;
+	my $cb = @_ & 1 ? pop : undef;
 
 	$easy->_perform( $uri, $cb,
 		@_,
@@ -286,7 +290,7 @@ sub head
 sub post
 {
 	my ( $easy, $uri, $post ) = splice @_, 0, 3;
-	my $cb = pop;
+	my $cb = @_ & 1 ? pop : undef;
 
 	my @postopts;
 	if ( not ref $post ) {
@@ -313,7 +317,7 @@ sub post
 sub put
 {
 	my ( $easy, $uri, $put ) = splice @_, 0, 3;
-	my $cb = pop;
+	my $cb = @_ & 1 ? pop : undef;
 
 	my @putopts;
 	if ( not ref $put ) {
@@ -326,7 +330,7 @@ sub put
 				sysread $fin, my ( $r ), $maxlen;
 				return \$r;
 			},
-			infilesize => -s $put
+			infilesize_large => -s $put
 		);
 	} elsif ( ref $put eq 'SCALAR' ) {
 		my $data = $$put;
@@ -337,7 +341,7 @@ sub put
 				my $r = substr $data, 0, $maxlen, '';
 				return \$r;
 			},
-			infilesize => length $data
+			infilesize_large => length $data
 		);
 	} elsif ( ref $put eq 'CODE' ) {
 		@putopts = (
@@ -348,7 +352,7 @@ sub put
 	}
 	$easy->_perform( $uri, $cb,
 		@_,
-		put => 1,
+		upload => 1,
 		@putopts
 	);
 }
@@ -445,7 +449,7 @@ Returns multiple getinfo values.
 
 Returns parent L<Net::Curl::Simple::UserAgent> object.
 
-=item get( URI, [%TEMPORARY_OPTIONS], &CALLBACK )
+=item get( URI, [%TEMPORARY_OPTIONS], [&CALLBACK] )
 
 Issue a GET request.
 
@@ -469,11 +473,11 @@ Returns the object itself to allow chaining.
 
  $curl->get( $uri, \&finished )->join();
 
-=item head( URI, [%TEMPORARY_OPTIONS], &CALLBACK )
+=item head( URI, [%TEMPORARY_OPTIONS], [&CALLBACK] )
 
 Issue a HEAD request. Otherwise it is exactly the same as get().
 
-=item post( URI, POST, [%TEMPORARY_OPTIONS], &CALLBACK )
+=item post( URI, POST, [%TEMPORARY_OPTIONS], [&CALLBACK] )
 
 Issue a POST request. POST value can be either a scalar, in which case it will
 be sent literally, a HASHREF - will be uri-encoded, or a L<Net::Curl::Form>
@@ -484,7 +488,7 @@ object (L<Net::Curl::Simple::Form> is OK as well).
      \&finished
  );
 
-=item put( URI, PUTDATA, [%TEMPORARY_OPTIONS], &CALLBACK )
+=item put( URI, PUTDATA, [%TEMPORARY_OPTIONS], [&CALLBACK] )
 
 Issue a PUT request. PUTDATA value can be either a file name, in which case the
 file contents will be uploaded, a SCALARREF -- refered data will be uploaded,
