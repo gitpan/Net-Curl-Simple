@@ -9,7 +9,7 @@ use URI;
 use URI::Escape qw(uri_escape);
 use base qw(Net::Curl::Easy);
 
-our $VERSION = '0.12';
+our $VERSION = '0.13';
 
 use constant
 	curl_features => Net::Curl::version_info()->{features};
@@ -51,21 +51,65 @@ my %proxytype = (
 	# introduced later in 7.18.0 and 7.19.4
 	eval {
 		$proxytype{socks4a} = CURLPROXY_SOCKS4A();
-		$proxytype{socks5host} = CURLPROXY_SOCKS5_HOSTNAME();
+		$proxytype{socks5h} = CURLPROXY_SOCKS5_HOSTNAME();
 	};
 	eval {
 		$proxytype{http10} = CURLPROXY_HTTP_1_0();
 	};
 }
 
+# options that accept either a single constant or a bitmask of constants
+my %optlong2constprefix = (
+	http_version	=> 'CURL_HTTP_VERSION_',
+	ipresolve		=> 'CURL_IPRESOLVE_',
+	netrc			=> 'CURL_NETRC_',
+	postredir		=> 'CURL_REDIR_POST_',
+	rtsp_request	=> 'CURL_RTSPREQ_',
+	sslversion		=> 'CURL_SSLVERSION_',
+	timecondition	=> 'CURL_TIMECOND_',
+	httpauth		=> 'CURLAUTH_',
+	proxyauth		=> 'CURLAUTH_',
+	ftpsslauth		=> 'CURLFTPAUTH_',
+	ftp_filemethod	=> 'CURLFTPMETHOD_',
+	tlsauth_type	=> 'CURLOPT_TLSAUTH_',
+	protocols		=> 'CURLPROTO_',
+	redir_protocols	=> 'CURLPROTO_',
+	ssh_auth_types	=> 'CURLSSH_AUTH_',
+	use_ssl			=> 'CURLUSESSL_',
+);
+
 {
 	my %optcache;
+	my %optlongcache;
 
 	sub setopt
 	{
 		my ( $easy, $opt, $val, $temp ) = @_;
 
 		unless ( looks_like_number( $opt ) ) {
+			if ( exists $optlong2constprefix{ $opt } ) {
+				# convert option value to a number
+				# FROM: protocols => "http, file"
+				# TO: CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_FILE
+				unless ( looks_like_number( $val ) ) {
+					unless ( exists $optlongcache{ $opt }->{ $val } ) {
+						my $value = 0;
+						my $prefix = $optlong2constprefix{ $opt };
+						foreach ( ref $val ? @$val : split /[\|, ]+/, $val ) {
+							my $const = $prefix . uc $_;
+							# only constants with lowercase letters:
+							# CURL_SSLVERSION_TLSv1, CURL_SSLVERSION_SSLv2...
+							$const =~ s/V(\d+)$/v$1/
+								if $prefix eq "CURL_SSLVERSION_";
+							eval "\$value |= Net::Curl::Easy::$const";
+							die "unrecognized literal value: $_ for option $opt\n"
+								if $@;
+						}
+						$optlongcache{ $opt }->{ $val } = $value;
+					}
+					$val = $optlongcache{ $opt }->{ $val };
+				}
+			}
 			# convert option name to option number
 			unless ( exists $optcache{ $opt } ) {
 				eval "\$optcache{ \$opt } = Net::Curl::Easy::CURLOPT_\U$opt";
@@ -423,7 +467,25 @@ connected C<Net::Curl::Simple> objects.
 =item setopt( NAME, VALUE, [TEMPORARY] )
 
 Set some option. Either permanently or only for next request if TEMPORARY is
-true.
+true. NAME can be a string: name of the CURLOPT_* constants, without CURLOPT_
+prefix, preferably in lower case. VALUE should be an appropriate value for that
+constant, as described in L<curl_easy_setopt(3)>.
+
+ $curl->setopt( url => $some_uri );
+
+Some options, those that require a constant or a bitmask as their value, can
+have a literal value specified instead of the constant. Bitmask values must
+be separated by commas, spaces, or combination of both; arrayrefs are accepted
+as well. Value names must be written without prefix common for all of values
+of this type.
+
+ # single constant
+ $curl->setopt( http_version => "1_0" );
+ $curl->setopt( ipresolve => "v4" );
+
+ # converted to a bitmask
+ $curl->setopt( protocols => "http, https, ftp, file" );
+ $curl->setopt( httpauth => "digest, gssnegotiate, ntlm" );
 
 =item setopts( %PERMANENT_OPTIONS )
 
